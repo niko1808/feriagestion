@@ -7,6 +7,7 @@ let products = db.get("products") || [];
 let sales = db.get("sales") || [];
 let view = "dashboard";
 let editProductIndex = null;
+let saleCart = [];
 
 const app = document.getElementById("app");
 
@@ -25,17 +26,7 @@ function renderApp() {
       <aside id="sidebar" class="sidebar">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
           <h2 style="margin:0;">CajaFeria</h2>
-          <button
-            onclick="toggleMenu()"
-            style="
-              width:32px;
-              height:32px;
-              cursor:pointer;
-              font-size:18px;
-              line-height:1;
-            "
-            aria-label="Cerrar menú"
-          >✕</button>
+          <icon-button class="btnCerrar" onclick="toggleMenu()">✕</button>
         </div>
 
         <button onclick="go('dashboard')">📊 Caja</button>
@@ -56,18 +47,15 @@ function renderApp() {
   `;
 }
 
-
 /* ======================
-   NAVEGACIÓN (GLOBAL)
+   NAVEGACIÓN
 ====================== */
-window.toggleMenu = function () {
+window.toggleMenu = () =>
   document.getElementById("sidebar").classList.toggle("open");
-};
 
-window.go = function (v) {
+window.go = v => {
   view = v;
   editProductIndex = null;
-  document.getElementById("sidebar").classList.remove("open");
   renderView();
 };
 
@@ -88,7 +76,6 @@ function renderView() {
 function renderDashboard(c) {
   const today = new Date().toDateString();
   const todaySales = sales.filter(s => s.date === today);
-
   const total = sum(todaySales, "total");
   const profit = sum(todaySales, s => s.total - s.cost);
 
@@ -139,33 +126,26 @@ function renderProducts(c) {
   `;
 }
 
-window.saveProduct = function () {
+window.saveProduct = () => {
   const product = {
     name: pName.value,
     cost: +pCost.value,
     price: +pPrice.value,
     stock: +pStock.value
   };
-
   if (!product.name) return alert("Nombre requerido");
 
-  if (editProductIndex !== null) {
-    products[editProductIndex] = product;
-  } else {
-    products.push(product);
-  }
+  editProductIndex !== null
+    ? products[editProductIndex] = product
+    : products.push(product);
 
   db.set("products", products);
   editProductIndex = null;
   renderView();
 };
 
-window.editProduct = function (i) {
-  editProductIndex = i;
-  renderView();
-};
-
-window.deleteProduct = function (i) {
+window.editProduct = i => (editProductIndex = i, renderView());
+window.deleteProduct = i => {
   if (confirm("Eliminar producto?")) {
     products.splice(i,1);
     db.set("products", products);
@@ -174,52 +154,91 @@ window.deleteProduct = function (i) {
 };
 
 /* ======================
-   VENTAS
+   VENTAS (CARRITO)
 ====================== */
 function renderSale(c) {
-  if (!products.length) {
-    c.innerHTML = `<p>No hay productos cargados</p>`;
-    return;
-  }
+  const total = saleCart.reduce((a,i)=>a+i.qty*i.price,0);
 
   c.innerHTML = `
     <h1>Nueva venta</h1>
+
     <div class="card">
       <select id="saleProduct">
-        ${products.map((p,i)=>`<option value="${i}">${p.name} - $${p.price}</option>`).join("")}
+        ${products.map((p,i)=>`
+          <option value="${i}">${p.name} - $${p.price} (Stock ${p.stock})</option>
+        `).join("")}
       </select>
-
       <input id="saleQty" type="number" min="1" value="1">
+      <button class="action" onclick="addToCart()">Agregar</button>
+    </div>
+
+    <div class="card">
+      <h3>Productos</h3>
+
+      ${saleCart.length === 0 ? "<p>No hay productos</p>" : `
+        <table>
+          <tr><th>Producto</th><th>Cant</th><th>Subtotal</th><th></th></tr>
+          ${saleCart.map((i,idx)=>`
+            <tr>
+              <td>${i.name}</td>
+              <td>
+                <input type="number" min="1" value="${i.qty}"
+                  onchange="updateQty(${idx},this.value)">
+              </td>
+              <td>$${i.qty*i.price}</td>
+              <td><button class="danger" onclick="removeItem(${idx})">✕</button></td>
+            </tr>
+          `).join("")}
+        </table>
+      `}
+
+      <h2>Total: $${total}</h2>
 
       <select id="salePay">
         <option value="efectivo">Efectivo</option>
         <option value="transferencia">Transferencia</option>
       </select>
 
-      <button class="action" onclick="makeSale()">Confirmar</button>
+      <button class="action" onclick="confirmSale()" ${!saleCart.length && "disabled"}>
+        Confirmar venta
+      </button>
     </div>
   `;
 }
 
-window.makeSale = function () {
-  const i = saleProduct.value;
+window.addToCart = () => {
+  const i = +saleProduct.value;
   const qty = +saleQty.value;
-
   if (products[i].stock < qty) return alert("Stock insuficiente");
 
-  products[i].stock -= qty;
+  const item = saleCart.find(p=>p.index===i);
+  item ? item.qty+=qty : saleCart.push({...products[i], index:i, qty});
+  renderView();
+};
+
+window.updateQty = (i,qty) => {
+  saleCart[i].qty = +qty;
+  renderView();
+};
+
+window.removeItem = i => (saleCart.splice(i,1), renderView());
+
+window.confirmSale = () => {
+  const total = saleCart.reduce((a,i)=>a+i.qty*i.price,0);
+  const cost = saleCart.reduce((a,i)=>a+i.qty*i.cost,0);
+
+  saleCart.forEach(i=>products[i.index].stock-=i.qty);
 
   sales.push({
-    product: products[i].name,
-    qty,
-    total: qty * products[i].price,
-    cost: qty * products[i].cost,
+    items: saleCart.map(i=>({product:i.name,qty:i.qty})),
+    total, cost,
     pay: salePay.value,
     date: new Date().toDateString()
   });
 
-  db.set("products", products);
-  db.set("sales", sales);
+  saleCart=[];
+  db.set("products",products);
+  db.set("sales",sales);
   go("dashboard");
 };
 
@@ -230,26 +249,22 @@ function renderHistory(c) {
   c.innerHTML = `
     <h1>Ventas</h1>
     <table>
-      <tr><th>Producto</th><th>Cant</th><th>Total</th><th>Pago</th><th></th></tr>
+      <tr><th>Total</th><th>Pago</th><th></th></tr>
       ${sales.map((s,i)=>`
         <tr>
-          <td>${s.product}</td>
-          <td>${s.qty}</td>
           <td>$${s.total}</td>
           <td>${s.pay}</td>
-          <td>
-            <button class="danger" onclick="deleteSale(${i})">🗑️</button>
-          </td>
+          <td><button class="danger" onclick="deleteSale(${i})">🗑️</button></td>
         </tr>
       `).join("")}
     </table>
   `;
 }
 
-window.deleteSale = function (i) {
-  if (confirm("Eliminar venta?")) {
+window.deleteSale = i => {
+  if(confirm("Eliminar venta?")){
     sales.splice(i,1);
-    db.set("sales", sales);
+    db.set("sales",sales);
     renderView();
   }
 };
@@ -257,23 +272,24 @@ window.deleteSale = function (i) {
 /* ======================
    HELPERS
 ====================== */
-function sum(arr, k) {
-  return arr.reduce((a,x)=>a+(typeof k==="function"?k(x):x[k]),0);
+function sum(a, k) {
+  return a.reduce(
+    (x, y) => x + (typeof k === "function" ? k(y) : y[k]),
+    0
+  );
 }
 
-function card(t,v) {
-  return `<div class="card"><small>${t}</small><b>${v}</b></div>`;
+function card(t, v) {
+  return `<div class="card">
+    <small>${t}</small>
+    <b>${v}</b>
+  </div>`;
 }
 
-window.closeDay = function () {
-  alert("Caja cerrada");
-};
+window.closeDay = ()=>alert("Caja cerrada");
 
 /* ======================
-   PWA (SAFE)
+   PWA
 ====================== */
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker
-    .register("sw.js")
-    .catch(() => {});
-}
+if ("serviceWorker" in navigator)
+  navigator.serviceWorker.register("sw.js").catch(()=>{});

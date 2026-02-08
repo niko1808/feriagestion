@@ -12,12 +12,25 @@ body {
   color: #111827;
 }
 
+/*====================
+Banner
+======================*/
+
+.banner{
+  width:150px;
+  height:150px;
+  margin:12px auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
 /* =====================
    APP SHELL
 ===================== */
 .app-shell {
   display: flex;
-  height: 100vh;
+  min-height: 50vh;
   overflow: hidden;
 }
 
@@ -144,6 +157,7 @@ body {
   top: 17px;
 }
 
+
 /* =====================
    CONTENT
 ===================== */
@@ -247,6 +261,24 @@ button.danger {
   color: white;
 }
 
+.btnCerrar {
+  width: 35px;
+  height: 35px;
+
+  padding: 0;                 /* CLAVE */
+  line-height: 1;             /* CLAVE */
+  font-size: 20px;            /* control del icono */
+
+  display: flex;              /* centrado real */
+  align-items: center;
+  justify-content: center;
+
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+
 /* =====================
    ANIMATIONS
 ===================== */
@@ -265,6 +297,10 @@ button.danger {
   }
 
   .hamburger {
+    display: none;
+  }
+
+  .btnCerrar{
     display: none;
   }
 }
