@@ -1,0 +1,270 @@
+/* =====================
+   RESET & BASE
+===================== */
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* =====================
+   APP SHELL
+===================== */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* =====================
+   SIDEBAR
+===================== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -240px;
+  width: 220px;
+  height: 100%;
+  background: #ffffff;
+  padding: 12px;
+  box-shadow: 8px 0 24px rgba(0,0,0,.15);
+  transition: left .3s ease, box-shadow .3s ease;
+  z-index: 1000;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar h2 {
+  margin: 8px 0 16px;
+  font-size: 18px;
+  text-align: center;
+  color: #2563eb;
+}
+
+.sidebar button {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  font-weight: 500;
+  transition: all .2s ease;
+}
+
+.sidebar button:hover {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+  transform: translateX(4px);
+}
+
+/* =====================
+   MAIN
+===================== */
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* =====================
+   TOPBAR
+===================== */
+.topbar {
+  height: 44px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 10px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.08);
+  z-index: 20;
+}
+
+/* empuja el contenido */
+.topbar span {
+  flex: 1;
+}
+
+
+/* =====================
+   HAMBURGER BUTTON
+===================== */
+.hamburger {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  margin-left: auto;
+  cursor: pointer;
+  position: relative;
+  transition: background .2s ease, border .2s ease;
+}
+
+.hamburger:hover {
+  background: #e5e7eb;
+}
+
+.hamburger span {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: #111827;
+  border-radius: 2px;
+  transition: all .25s ease;
+}
+
+.hamburger span:nth-child(1) { top: 11px; }
+.hamburger span:nth-child(2) { top: 17px; }
+.hamburger span:nth-child(3) { top: 23px; }
+
+/* Estado X */
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg);
+  top: 17px;
+}
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg);
+  top: 17px;
+}
+
+/* =====================
+   CONTENT
+===================== */
+main {
+  padding: 18px;
+  overflow-y: auto;
+  animation: fadeIn .25s ease;
+}
+
+/* =====================
+   CARDS & UI
+===================== */
+.card {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.08);
+  margin-bottom: 16px;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+/* =====================
+   TABLE
+===================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,.08);
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+/* =====================
+   FORM
+===================== */
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  transition: border .2s ease, box-shadow .2s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37,99,235,.2);
+}
+
+/* =====================
+   BUTTONS
+===================== */
+button {
+  border-radius: 10px;
+  border: none;
+}
+
+button.action {
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s ease, transform .15s ease;
+}
+
+button.action:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+button.warning {
+  background: #facc15;
+  color: #111827;
+}
+
+button.danger {
+  background: #dc2626;
+  color: white;
+}
+
+/* =====================
+   ANIMATIONS
+===================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* =====================
+   DESKTOP
+===================== */
+@media(min-width: 768px) {
+  .sidebar {
+    left: 0;
+    position: relative;
+  }
+
+  .hamburger {
+    display: none;
+  }
+}
